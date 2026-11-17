@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive English Flashcards - Memorize & Quiz</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #f72585;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ec4b6;
+            --warning: #ff9f1c;
+            --purple: #7b2cbf;
+            --bg-color: #e0f7fa; 
+            --blue-gradient-start: #007bff;
+            --blue-gradient-end: #00c6ff;
+            --red-gradient-start: #f44336;
+            --red-gradient-end: #ff7367;
+            --header-bg: #023e8a;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            background: rgba(2, 62, 138, 0.9);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+        }
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.95;
+            font-weight: 600;
+        }
+        .selector-section {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) {
+            .selector-grid { grid-template-columns: 1fr; gap: 10px; }
+        }
+        .selector-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--header-bg);
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            background-color: white;
+            color: var(--dark);
+            outline: none;
+        }
+        .mode-selector {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 6px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 50px;
+            border: none;
+            background-color: transparent;
+            color: var(--header-bg);
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 110px;
+        }
+        .mode-btn.active {
+            background-color: var(--header-bg);
+            color: white;
+            box-shadow: 0 4px 10px rgba(2, 62, 138, 0.3);
+        }
+        .flashcard-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-bottom: 12px;
+        }
+        .btn {
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.05rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn.blue {
+            background: linear-gradient(45deg, var(--blue-gradient-start), var(--blue-gradient-end));
+            background-size: 200% auto;
+            animation: gradientMove 3s infinite alternate;
+        }
+        .btn.red {
+            background: linear-gradient(45deg, var(--red-gradient-start), var(--red-gradient-end));
+            background-size: 200% auto;
+            animation: gradientMove 3s infinite alternate;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            animation: none !important;
+        }
+        .card-container {
+            perspective: 1000px;
+            height: 320px;
+            margin-bottom: 20px;
+        }
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .card-front {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: var(--dark);
+            border: 3px solid #90caf9;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+            color: var(--dark);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            border: 3px solid #c5e1a5;
+        }
+        .word-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .word {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+        .description { font-size: 1.25rem; margin-bottom: 15px; line-height: 1.4; font-weight: 500; }
+        .arabic-meaning { font-size: 2rem; font-weight: bold; color: #33691e; direction: rtl; }
+        .card-icon { font-size: 3.5rem; margin-bottom: 10px; }
+        .pronounce-btn {
+            background: var(--header-bg); border: none; font-size: 1.3rem; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
+        }
+        .pronounce-btn:hover { transform: scale(1.15); }
+        .quiz-view { height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .quiz-score, .quiz-progress { font-size: 1.1rem; font-weight: bold; color: var(--header-bg); }
+        .quiz-question { font-size: 1.4rem; margin-bottom: 15px; font-weight: bold; text-align: center; width: 100%; }
+        #quizQuestionLevel1 { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        #quizQuestionIcon { font-size: 3.5rem; }
+        #quizQuestionWord { font-size: 2.2rem; font-weight: bold; color: #0d47a1; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        @media (max-width: 500px) { .quiz-options { grid-template-columns: 1fr; gap: 8px; } }
+        .option-btn { width: 100%; padding: 12px; font-size: 1.1rem; font-weight: bold; border: 2px solid var(--primary); color: var(--primary); background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
+        .option-btn:hover:not(:disabled) { background-color: var(--primary); color: white; }
+        .option-btn.correct { background-color: var(--success) !important; color: white !important; border-color: var(--success) !important; }
+        .option-btn.incorrect { background-color: #e63946 !important; color: white !important; border-color: #e63946 !important; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .navigation { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .progress { font-weight: bold; font-size: 1.1rem; color: var(--header-bg); }
+        .word-list { margin-top: 15px; max-height: 120px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 6px; background: white; }
+        .word-item { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: all 0.2s ease; border-radius: 4px; font-size: 1rem; font-weight: 600; }
+        .word-item:last-child { border-bottom: none; }
+        .word-item:hover { background-color: rgba(76, 201, 240, 0.15); }
+        .word-item.active { background-color: var(--primary); color: white; }
+        .notification { position: fixed; top: 15px; right: 15px; padding: 12px 20px; border-radius: 8px; background: var(--success); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(120%); transition: transform 0.3s ease-in-out; z-index: 1000; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .notification.error { background: #e63946; }
+        .notification.show { transform: translateX(0); }
+        .hidden { display: none !important; }
+        .controls-section { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.5); }
+        .control-group { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+        .checkbox-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 600; }
+        #speedControl { width: 100px; }
+        #speedValue { font-weight: bold; color: var(--primary); }
+        .game-menu { text-align: center; padding: 10px 0; }
+        .game-menu h2 { margin-bottom: 15px; color: var(--header-bg); }
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 500px; margin: 0 auto; }
+        @media (max-width: 450px) { .game-grid { grid-template-columns: 1fr; } }
+        #matchBoard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .matching-column { display: flex; flex-direction: column; gap: 8px; }
+        .match-item { padding: 12px; border: 2px solid #ccc; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s ease; font-size: 1.05rem; font-weight: 600; background-color: white; }
+        .match-item:hover { border-color: var(--primary); background-color: #f0f8ff; }
+        .match-item.selected { border-color: var(--primary); background-color: var(--accent); color: white; }
+        .match-item.correct { border-color: var(--success); background-color: var(--success); color: white; opacity: 0.4; pointer-events: none; }
+        .match-item.incorrect { border-color: #e63946; background-color: #e63946; color: white; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        #hangmanDrawing { width: 140px; height: 160px; margin: 0 auto 10px; background: #fff; border-radius: 8px; padding: 5px; }
+        #hangmanDrawing .hg-part { stroke: var(--dark); stroke-width: 4; fill: none; stroke-linecap: round; opacity: 0; transition: opacity 0.2s; }
+        #hangmanDrawing .hg-part.draw { opacity: 1; }
+        #hangmanWord { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
+        .letter-box { width: 32px; height: 35px; border-bottom: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; }
+        #hangmanKeyboard { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 500px; margin: 0 auto; }
+        .key { padding: 8px 4px; font-size: 1rem; font-weight: bold; text-transform: uppercase; border-radius: 6px; border: 1px solid #ccc; background-color: white; cursor: pointer; }
+        .key.correct { background-color: var(--success); color: white; }
+        .key.incorrect { background-color: #e63946; color: white; opacity: 0.5; }
+        #scrambledWord { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: var(--primary); margin: 15px 0; padding: 15px; background-color: #f0f8ff; border-radius: 8px; text-align: center; }
+        #scrambleGuessInput, #spellingGuessInput { width: 100%; max-width: 400px; padding: 12px; font-size: 1.4rem; border-radius: 8px; border: 2px solid var(--accent); margin: 10px auto; text-align: center; display: block; }
+        #hearWordAgainBtn { font-size: 3.5rem; background: none; border: none; color: var(--primary); cursor: pointer; transition: transform 0.2s; margin-bottom: 10px; display: inline-block; }
+        #hearWordAgainBtn:hover { transform: scale(1.1); }
+        #spellingBeeHint { font-size: 1.3rem; color: var(--dark); margin-bottom: 15px; padding: 12px; background-color: #e3f2fd; border-radius: 8px; text-align: center; direction: rtl; font-weight: bold; }
+        footer {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #023e8a, #007bff, #00c6ff, #023e8a);
+            background-size: 300% 100%;
+            animation: scrollGradient 6s linear infinite;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        @keyframes scrollGradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interactive English Flashcards</h1>
+            <div class="subtitle">All rights are reserved to Dr. Mazen Badawy – Doctor of English Teaching & Testing</div>
+        </header>
+
+        <section class="selector-section">
+            <div class="selector-grid">
+                <div class="selector-group">
+                    <label for="unitSelect">Unit / Category:</label>
+                    <select id="unitSelect"></select>
+                </div>
+                <div class="selector-group">
+                    <label for="lessonSelect">Lesson / Scope:</label>
+                    <select id="lessonSelect"></select>
+                </div>
+            </div>
+        </section>
+
+        <div id="appContainer">
+            <div class="mode-selector">
+                <button class="mode-btn active" id="memorizeModeBtn">🧠 Memorize</button>
+                <button class="mode-btn" id="searchModeBtn">🔍 Search</button>
+                <button class="mode-btn" id="quizModeBtn">🏆 Quiz</button>
+                <button class="mode-btn" id="gamesModeBtn">🎮 Games</button>
+            </div>
+
+            <main class="main-content">
+                 <div class="flashcard-section">
+                     <div id="searchSection" class="hidden">
+                         <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 12px;">
+                             <button class="btn blue" id="searchLangEnBtn">Search English</button>
+                             <button class="btn red" id="searchLangArBtn" style="opacity: 0.6;">Search Arabic</button>
+                         </div>
+                         <input type="text" id="searchInput" placeholder="Search words (use * for wildcard)...">
+                         <div id="searchResults" class="word-list" style="max-height: 200px;"></div>
+                     </div>
+
+                     <div id="levelSelectView" class="hidden" style="text-align: center; padding: 10px 0;">
+                         <h2 style="color: var(--header-bg); margin-bottom: 15px;">Select Quiz Level</h2>
+                         <div style="margin-bottom: 15px; font-size: 1.1rem; font-weight: bold;">
+                             <label for="quizLengthInput">Number of Questions:</label>
+                             <input type="number" id="quizLengthInput" value="10" min="2" style="width: 70px; padding: 6px; text-align: center; border-radius: 6px; border: 2px solid var(--accent); margin-left: 5px;">
+                         </div>
+                         <button id="level1Btn" class="btn blue" style="width: 100%; max-width: 400px; margin: 8px auto; display: block;">Level 1: Word ➔ Meaning</button>
+                         <button id="level2Btn" class="btn blue" style="width: 100%; max-width: 400px; margin: 8px auto; display: block;">Level 2: Description ➔ Word</button>
+                     </div>
+
+                     <div id="gamesSection" class="hidden">
+                         <div id="gameMenuView" class="game-menu">
+                             <h2>Vocabulary Games</h2>
+                             <div class="game-grid">
+                                 <button id="startMatchingGameBtn" class="btn blue">Matching Game</button>
+                                 <button id="startHangmanGameBtn" class="btn" style="background-color: var(--warning);">Hangman</button>
+                                 <button id="startWordScrambleGameBtn" class="btn" style="background-color: var(--accent);">Word Scramble</button>
+                                 <button id="startSpellingBeeGameBtn" class="btn" style="background-color: var(--purple);">Spelling Bee</button>
+                             </div>
+                         </div>
+                         
+                         <div id="matchingGameContainer" class="hidden">
+                             <div class="quiz-header">
+                                 <span id="matchScore">Score: 0</span>
+                                 <button id="restartMatchingGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="matchBoard">
+                                 <div class="matching-column" id="matchWordsColumn"></div>
+                                 <div class="matching-column" id="matchMeaningsColumn"></div>
+                             </div>
+                         </div>
+                         
+                         <div id="hangmanGameContainer" class="hidden">
+                           <div class="quiz-header">
+                                <span id="hangmanLives">Lives: 6</span>
+                                <button id="restartHangmanGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                           <svg id="hangmanDrawing">
+                               <line class="hg-part" x1="15" y1="150" x2="85" y2="150" />
+                               <line class="hg-part" x1="50" y1="150" x2="50" y2="15" />
+                               <line class="hg-part" x1="50" y1="15" x2="110" y2="15" />
+                               <line class="hg-part" x1="110" y1="15" x2="110" y2="40" />
+                               <circle class="hg-part" cx="110" cy="55" r="15" />
+                               <line class="hg-part" x1="110" y1="70" x2="110" y2="110" />
+                               <line class="hg-part" x1="110" y1="80" x2="85" y2="95" />
+                               <line class="hg-part" x1="110" y1="80" x2="135" y2="95" />
+                               <line class="hg-part" x1="110" y1="110" x2="85" y2="135" />
+                               <line class="hg-part" x1="110" y1="110" x2="135" y2="135" />
+                           </svg>
+                           <div id="hangmanWord"></div>
+                           <div id="hangmanKeyboard"></div>
+                         </div>
+                         
+                         <div id="wordScrambleGameContainer" class="hidden">
+                             <div class="quiz-header">
+                                 <span id="scrambleScore">Score: 0</span>
+                                 <button id="restartWordScrambleGameBtn" class="btn red">🔄 New Game</button>
+                             </div>
+                             <div id="scrambledWord"></div>
+                             <input type="text" id="scrambleGuessInput" placeholder="Type your guess...">
+                             <div style="text-align: center; margin-top: 10px;">
+                                 <button id="submitScrambleBtn" class="btn blue">Submit</button>
+                                 <button id="skipScrambleBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                             </div>
+                         </div>
+                         
+                         <div id="spellingBeeGameContainer" class="hidden">
+                            <div class="quiz-header">
+                                <span id="spellingBeeScore">Score: 0</span>
+                                <span id="spellingBeeLives">Lives: 5 ❤️</span>
+                                <button id="restartSpellingBeeGameBtn" class="btn red">🔄 New Game</button>
+                            </div>
+                            <div style="text-align: center;">
+                                <button id="hearWordAgainBtn" title="Hear word again">🔊</button>
+                            </div>
+                            <div id="spellingBeeHint">Hint will appear here</div>
+                            <input type="text" id="spellingGuessInput" placeholder="Type what you hear...">
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button id="submitSpellingBtn" class="btn blue">Submit</button>
+                                <button id="skipSpellingBtn" class="btn" style="background-color: var(--warning);">Skip</button>
+                            </div>
+                         </div>
+                     </div>
+
+                     <div id="controlsSection" class="controls-section">
+                         <div class="control-group">
+                             <label for="speedControl"><strong>Speed:</strong></label>
+                             <input type="range" id="speedControl" min="0.5" max="1.8" value="1" step="0.1">
+                             <span id="speedValue">1.0x</span>
+                         </div>
+                         <div class="control-group checkbox-group">
+                             <strong>Pronounce:</strong>
+                             <label><input type="checkbox" id="pronounceWordCheck" checked> Word</label>
+                             <label><input type="checkbox" id="pronounceArabicCheck"> Arabic</label>
+                             <label><input type="checkbox" id="pronounceDescriptionCheck"> Desc</label>
+                         </div>
+                     </div>
+
+                     <div class="card-container" id="cardContainer">
+                         <div class="card" id="memorizeView">
+                             <div class="card-face card-front">
+                                 <div class="card-icon" id="cardIcon">📚</div>
+                                 <div class="word-container">
+                                     <div class="word" id="wordFront"></div>
+                                     <button class="pronounce-btn" id="pronounceBtn" title="Pronounce word">🔊</button>
+                                 </div>
+                             </div>
+                             <div class="card-face card-back">
+                                 <div class="description" id="description"></div>
+                                 <div class="arabic-meaning" id="arabicMeaning"></div>
+                             </div>
+                         </div>
+
+                         <div id="quizView" class="quiz-view hidden">
+                             <div class="quiz-header">
+                                 <div class="quiz-progress" id="quizProgress">Question: 0/0</div>
+                                 <div class="quiz-score" id="quizScore">🏆 Score: 0/0</div>
+                                 <button class="btn red" id="restartQuizBtn">🔄 Restart</button>
+                             </div>
+                             <div class="quiz-question" id="quizQuestion">
+                                 <span id="quizQuestionText"></span>
+                                 <div id="quizQuestionLevel1" class="hidden">
+                                     <div id="quizQuestionIcon"></div>
+                                     <div id="quizQuestionWord"></div>
+                                 </div>
+                             </div>
+                             <div class="quiz-options" id="quizOptions"></div>
+                         </div>
+                     </div>
+
+                     <div class="navigation" id="memorizeNav">
+                         <button class="btn red" id="prevBtn">⬅️ Previous</button>
+                         <div class="progress" id="progress">0 / 0</div>
+                         <button class="btn" id="shuffleBtn" style="background-color: var(--primary);">🔀 Shuffle</button>
+                         <button class="btn" id="autoplayBtn" style="background-color: var(--accent);">▶️ Autoplay</button>
+                         <button class="btn blue" id="nextBtn">Next ➡️</button>
+                     </div>
+
+                     <div class="word-list" id="wordList"></div>
+                 </div>
+            </main>
+        </div>
+    </div>
+    <div class="notification" id="notification">Notification</div>
+    <footer>All rights are reserved to Dr. Mazen Badawy – Doctor of English Teaching & Testing</footer>
+
+    <script>
+        // --- Static Data Store Array Struct ---
+        const rawVocabData = [
+            // Unit 1
+              { unit: "Unit 1", lesson: "Lesson 1&2", word: "digital", icon: "💻", description: "using computer technology or electronic devices", arabic: "رقمي" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "screen time", icon: "📱", description: "time spent using screens", arabic: "وقت استخدام الشاشة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "tablet", icon: "📱", description: "a flat portable computer with a touchscreen", arabic: "جهاز لوحي (تابلت)" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "screen", icon: "🖥️", description: "a flat surface on which pictures or words are shown", arabic: "شاشة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "smartboard", icon: "📋", description: "an interactive digital board used in classrooms", arabic: "سبورة ذكية" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "social media", icon: "📲", description: "websites and apps for sharing content", arabic: "وسائل التواصل الاجتماعي" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "laptop", icon: "💻", description: "a portable computer", arabic: "كمبيوتر محمول" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "amazing", icon: "✨", description: "very surprising and wonderful", arabic: "مُخْطِر/رائع" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "website", icon: "🌐", description: "a set of pages on the internet", arabic: "موقع إلكتروني" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "search for", icon: "🔍", description: "to look for information", arabic: "يبحث عن" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "e-book", icon: "📖", description: "a book in digital form", arabic: "كتاب إلكتروني" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "remind", icon: "🔔", description: "to make someone remember", arabic: "يُذَكَّر" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "night mode", icon: "🌙", description: "a darker screen setting to protect your eyes in low light", arabic: "الوضع الليلي" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "message", icon: "✉️", description: "a written or electronic communication", arabic: "رسالة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "technology", icon: "⚙️", description: "scientific knowledge used in practical ways", arabic: "تكنولوجيا" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "smartphone", icon: "📱", description: "a mobile phone with advanced features", arabic: "هاتف ذكي" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "useful", icon: "👍", description: "helpful and practical", arabic: "مفيد" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "outdoor activities", icon: "🏞️", description: "things done outside", arabic: "أنشطة خارجية" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "greener", icon: "🌿", description: "more environmentally friendly", arabic: "أكثر صداقة للبيئة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "pollution", icon: "🏭", description: "harmful substances in the environment", arabic: "تلوث" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "wisely", icon: "🧠", description: "in a smart and careful way", arabic: "بحكمة/بطريقة حكيمة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "navigation", icon: "🧭", description: "the act of finding your way", arabic: "ملاحة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "daily routine", icon: "📅", description: "things you do every day", arabic: "النظام اليومي" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "digital tools", icon: "🛠️", description: "electronic devices and apps", arabic: "الأدوات الرقمية" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "hybrid bus", icon: "🚌", description: "a bus that uses both electricity and fuel", arabic: "حافلة هجينة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "digital devices", icon: "📱", description: "electronic equipment like tablets and phones", arabic: "الأجهزة الرقمية" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "environment", icon: "🌍", description: "the natural world around us", arabic: "البيئة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "online games", icon: "🎮", description: "games played over the internet", arabic: "ألعاب على الإنترنت" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "affect", icon: "🔄", description: "to influence or change something", arabic: "يؤثر على" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "bedtime", icon: "🛏️", description: "the time you go to bed", arabic: "وقت النوم" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "type", icon: "⌨️", description: "to write using a keyboard", arabic: "يكتب باستخدام لوحة مفاتيح" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "app", icon: "📲", description: "a software application", arabic: "تطبيق" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "include", icon: "➕", description: "to contain as part of a whole", arabic: "يشمل/يضم" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "space", icon: "🚀", description: "the area beyond Earth", arabic: "الفضاء" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "balance", icon: "⚖️", description: "to keep things equal", arabic: "يوازن" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "habit", icon: "🔁", description: "something you do regularly", arabic: "عادة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "reduce", icon: "📉", description: "to make less", arabic: "يقلل" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "adventure", icon: "🗺️", description: "an exciting experience", arabic: "مغامرة" },
+  { unit: "Unit 1", lesson: "Lesson 1&2", word: "launch", icon: "🚀", description: "to start something new", arabic: "يطلق" },
+
+  // ===== UNIT 1 - Lesson 3 (SB pages 18-19) =====
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "microphone", icon: "🎤", description: "a device for recording sound", arabic: "ميكروفون" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "speaker", icon: "🔊", description: "a device that produces sound", arabic: "مكبر صوت" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "obedience", icon: "🙇", description: "the act of following orders", arabic: "طاعة" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "mouse", icon: "🖱️", description: "a computer pointing device", arabic: "فأرة الكمبيوتر" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "video call", icon: "📹", description: "a call with video", arabic: "مكالمة فيديو" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "presentation", icon: "📊", description: "a talk showing information", arabic: "عرض تقديمي" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "notes", icon: "📝", description: "short written records", arabic: "ملاحظات" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "extremely", icon: "❗", description: "very; to a high degree", arabic: "جدا / فائق / للغاية" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "print", icon: "🖨️", description: "to produce a copy on paper", arabic: "يطبع" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "achieve", icon: "🏆", description: "to succeed in doing something", arabic: "ينجز/يحقق" },
+  { unit: "Unit 1", lesson: "Lesson 3&4", word: "record", icon: "⏺️", description: "to save sound or video", arabic: "يسجل" },
+
+  // ===== UNIT 1 - Lessons 5&6 (SB pages 36-39, pages 3 & 7) =====
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "music player", icon: "🎵", description: "a device for playing music", arabic: "مشغل الموسيقى" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "news", icon: "📰", description: "reports of recent events", arabic: "أخبار" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "ICT class", icon: "🖥️", description: "Information and Communication Technology class", arabic: "حصة تكنولوجيا المعلومات" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "information", icon: "ℹ️", description: "facts about something", arabic: "معلومات" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "phone", icon: "📞", description: "a device for communication", arabic: "هاتف" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "camera", icon: "📷", description: "a device for taking photos", arabic: "كاميرا" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "tool", icon: "🔧", description: "an instrument for doing work", arabic: "أداة" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "latest", icon: "🆕", description: "newest; most recent", arabic: "أحدث" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "boring", icon: "😴", description: "not interesting", arabic: "ممل" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "online", icon: "🌐", description: "connected to the internet", arabic: "متصل بالإنترنت" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "trust", icon: "🤝", description: "to believe in someone", arabic: "يثق" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "reply", icon: "↩️", description: "to answer", arabic: "يرد" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "while", icon: "⏳", description: "during the time that", arabic: "أثناء / في خلال" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "ideas", icon: "💡", description: "thoughts or suggestions", arabic: "أفكار" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "try", icon: "🎯", description: "to attempt", arabic: "يحاول/يجرب" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "practice", icon: "🔁", description: "to do repeatedly to improve", arabic: "ممارسة/يمارس" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "mistakes", icon: "❌", description: "errors", arabic: "أخطاء" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "voice", icon: "🗣️", description: "the sound you make when speaking", arabic: "صوت" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "hard", icon: "💪", description: "difficult", arabic: "صعب" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "pronunciation", icon: "🔊", description: "the way you say words", arabic: "نطق" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "clearly", icon: "💡", description: "in an easy-to-understand way", arabic: "بوضوح" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "performance", icon: "🎭", description: "how well someone does something", arabic: "أداء" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "anywhere", icon: "📍", description: "in any place", arabic: "في أي مكان" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "learning plan", icon: "📋", description: "a plan for studying", arabic: "خطة التعلم" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "underneath", icon: "⬇️", description: "below", arabic: "بالأسفل" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "journal", icon: "📓", description: "a diary or notebook", arabic: "مذكرة/دفتر يوميات" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "record", icon: "⏺️", description: "to save sound or video", arabic: "يسجل" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "diagram", icon: "📊", description: "a drawing that explains something", arabic: "رسم بياني/مخطط" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "discover", icon: "🔍", description: "to find out", arabic: "يكتشف" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "phrase", icon: "💬", description: "a group of words", arabic: "عبارة" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "describe", icon: "📝", description: "to say what something is like", arabic: "يصف" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "learning styles", icon: "🎓", description: "different ways people learn", arabic: "طرق التعلم" },
+  { unit: "Unit 1", lesson: "Lesson 5&6", word: "remind", icon: "🔔", description: "to make someone remember", arabic: "يُذَكِّر" },
+
+  // ===== UNIT 2 - Lessons 1&2 (SB pages 27-31, pages 4 & 8) =====
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "map", icon: "🗺️", description: "a drawing of an area", arabic: "خريطة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "auditory", icon: "👂", description: "related to hearing", arabic: "سمعي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "mind map", icon: "🧠", description: "a visual tool used to organize information", arabic: "خريطة ذهنية" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "kinesthetic", icon: "🤸", description: "related to movement", arabic: "حركي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "chart", icon: "📊", description: "a diagram or graph", arabic: "مخطط/رسم بياني" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "successful", icon: "🏆", description: "achieving goals", arabic: "ناجح" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "explanation", icon: "💡", description: "a clear description", arabic: "شرح" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "regularly", icon: "🔄", description: "at fixed times", arabic: "بانتظام" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "experiment", icon: "🧪", description: "a scientific test", arabic: "تجربة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "review", icon: "📖", description: "to study again", arabic: "يراجع" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "technique", icon: "🛠️", description: "a method or way", arabic: "أسلوب" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "improve", icon: "📈", description: "to make better", arabic: "يحسن/يطور" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "visual", icon: "👁️", description: "related to sight and seeing", arabic: "بصري" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "organize", icon: "📂", description: "to arrange neatly", arabic: "ينظم" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "study space", icon: "📚", description: "a place for studying", arabic: "مكان الدراسة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "enjoyable", icon: "😊", description: "fun and pleasant", arabic: "ممتع" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "method", icon: "⚙️", description: "a way of doing something", arabic: "طريقة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "neat", icon: "✨", description: "tidy and organized", arabic: "مرتب/منظم" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "energy", icon: "⚡", description: "power or strength", arabic: "طاقة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "colourful", icon: "🎨", description: "full of colors", arabic: "كثير الألوان" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "topic", icon: "📌", description: "a subject", arabic: "موضوع" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "physical", icon: "🏃", description: "related to the body", arabic: "بدني/جسدي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "learning style", icon: "🎓", description: "the way someone learns best", arabic: "أسلوب التعلم" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "helpful", icon: "👍", description: "useful", arabic: "مفيد/نافع" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "distractions", icon: "📵", description: "things that take attention away", arabic: "مشتتات الانتباه" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "organized", icon: "📋", description: "arranged well", arabic: "منظم" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "challenges", icon: "⛰️", description: "difficult tasks", arabic: "تحديات/صعوبات" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "individually", icon: "👤", description: "alone; one by one", arabic: "بشكل فردي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "solutions", icon: "✅", description: "answers to problems", arabic: "حلول" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "repeat", icon: "🔁", description: "to do again", arabic: "يكرر/يعيد" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "the key", icon: "🔑", description: "the main thing", arabic: "الشيء العام" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "remember", icon: "🧠", description: "to keep in mind", arabic: "يتذكر" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "passion", icon: "❤️", description: "strong love for something", arabic: "شغف" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "memorize", icon: "💾", description: "to learn by heart", arabic: "يحفظ" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "schedule", icon: "📅", description: "a time plan", arabic: "جدول زمني" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "suit", icon: "👔", description: "to be right for", arabic: "يلائم/يناسب" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "benefits", icon: "🎁", description: "advantages", arabic: "فوائد" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "experiences", icon: "🌟", description: "things you have done or lived through", arabic: "خبرات/تجارب حياتية" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "solutions", icon: "✅", description: "answers to problems", arabic: "حلول" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "confident", icon: "💪", description: "sure of yourself", arabic: "واثق من نفسه" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "cooperation", icon: "🤝", description: "working together", arabic: "التعاون" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "creative", icon: "🎨", description: "good at making new things", arabic: "مبدع" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "leadership", icon: "👑", description: "the ability to lead", arabic: "القيادة" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "develop", icon: "📈", description: "to grow or improve", arabic: "يطور/ينمي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "apps = applications", icon: "📲", description: "software programs", arabic: "تطبيقات" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "communicate", icon: "💬", description: "to share information", arabic: "يتواصل" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "digital devices", icon: "📱", description: "electronic equipment", arabic: "الأجهزة الرقمية" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "team sports", icon: "⚽", description: "sports played in groups", arabic: "الرياضات الجماعية" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "teamwork", icon: "🤝", description: "working together as a team", arabic: "العمل الجماعي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "media", icon: "📺", description: "TV, radio, newspapers, etc.", arabic: "وسائل الإعلام" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "group learning", icon: "👥", description: "learning in a group", arabic: "التعلم الجماعي" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "thinker", icon: "🤔", description: "a person who thinks deeply", arabic: "مفكر" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "skills", icon: "🛠️", description: "abilities", arabic: "مهارات" },
+  { unit: "Unit 2", lesson: "Lesson 1&2", word: "alone", icon: "👤", description: "by yourself", arabic: "منفرد/وحيداً" },
+
+  // ===== UNIT 2 - Lesson 3 (SB pages 32-33) =====
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "benefits", icon: "🎁", description: "advantages", arabic: "فوائد" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "experiences", icon: "🌟", description: "things you have done", arabic: "خبرات/تجارب حياتية" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "solutions", icon: "✅", description: "answers to problems", arabic: "حلول" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "confident", icon: "💪", description: "sure of yourself", arabic: "واثق من نفسه" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "cooperation", icon: "🤝", description: "working together", arabic: "التعاون" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "creative", icon: "🎨", description: "good at making new things", arabic: "مبدع" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "leadership", icon: "👑", description: "the ability to lead", arabic: "القيادة" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "develop", icon: "📈", description: "to grow or improve", arabic: "يطور/ينمي" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "apps = applications", icon: "📲", description: "software programs", arabic: "تطبيقات" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "communicate", icon: "💬", description: "to share information", arabic: "يتواصل" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "digital devices", icon: "📱", description: "electronic equipment", arabic: "الأجهزة الرقمية" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "team sports", icon: "⚽", description: "sports played in groups", arabic: "الرياضات الجماعية" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "teamwork", icon: "🤝", description: "working together as a team", arabic: "العمل الجماعي" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "media", icon: "📺", description: "TV, radio, newspapers", arabic: "وسائل الإعلام" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "group learning", icon: "👥", description: "learning in a group", arabic: "التعلم الجماعي" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "thinker", icon: "🤔", description: "a person who thinks deeply", arabic: "مفكر" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "skills", icon: "🛠️", description: "abilities", arabic: "مهارات" },
+  { unit: "Unit 2", lesson: "Lesson 3&4", word: "alone", icon: "👤", description: "by yourself", arabic: "منفرد/وحيداً" },
+
+  // ===== UNIT 2 - Lessons 5&6 (SB pages 36-39, pages 6 & 7) =====
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "ideas", icon: "💡", description: "thoughts or suggestions", arabic: "أفكار" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "try", icon: "🎯", description: "to attempt", arabic: "يحاول/يجرب" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "practice", icon: "🔁", description: "to do repeatedly", arabic: "ممارسة/يمارس" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "mistakes", icon: "❌", description: "errors", arabic: "أخطاء" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "voice", icon: "🗣️", description: "the sound you make when speaking", arabic: "صوت" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "hard", icon: "💪", description: "difficult", arabic: "صعب" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "pronunciation", icon: "🔊", description: "the way you say words", arabic: "نطق" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "clearly", icon: "💡", description: "in an easy-to-understand way", arabic: "بوضوح" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "performance", icon: "🎭", description: "how well someone does something", arabic: "أداء" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "anywhere", icon: "📍", description: "in any place", arabic: "في أي مكان" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "learning plan", icon: "📋", description: "a plan for studying", arabic: "خطة التعلم" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "underneath", icon: "⬇️", description: "below", arabic: "بالأسفل" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "journal", icon: "📓", description: "a diary or notebook", arabic: "مذكرة/دفتر يوميات" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "record", icon: "⏺️", description: "to save sound or video", arabic: "يسجل" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "diagram", icon: "📊", description: "a drawing that explains something", arabic: "رسم بياني/مخطط" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "discover", icon: "🔍", description: "to find out", arabic: "يكتشف" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "phrase", icon: "💬", description: "a group of words", arabic: "عبارة" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "describe", icon: "📝", description: "to say what something is like", arabic: "يصف" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "learning styles", icon: "🎓", description: "different ways people learn", arabic: "طرق التعلم" },
+  { unit: "Unit 2", lesson: "Lesson 5&6", word: "remind", icon: "🔔", description: "to make someone remember", arabic: "يُذَكِّر" },
+
+  // ===== UNIT 3 - Lessons 1&2 (SB pages 42-45, page 9) =====
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "role model", icon: "🌟", description: "someone you admire and try to be like", arabic: "قدوة/مثل أعلى" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "determined", icon: "💪", description: "not giving up easily", arabic: "مصمم/عاقد العزم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "achievement", icon: "🏆", description: "success in reaching a goal", arabic: "إنجاز" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "inspire", icon: "✨", description: "to give someone motivation or encouragement", arabic: "يلهم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "hero", icon: "🦸", description: "a person who does great things for others", arabic: "بطل" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "respect", icon: "🙏", description: "to feel admiration for someone", arabic: "يحترم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "kind", icon: "😊", description: "friendly and caring", arabic: "لطيف/عطوف" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "physics", icon: "⚛️", description: "the science of matter and energy", arabic: "الفيزياء" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "symbol", icon: "🔣", description: "a sign that represents something", arabic: "رمز" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "atomic radiation", icon: "☢️", description: "energy released from atoms", arabic: "الإشعاع الذري" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "officer", icon: "👮", description: "a person in authority", arabic: "ضابط" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "peace", icon: "🕊️", description: "freedom from war", arabic: "سلام" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "soldier", icon: "🪖", description: "a member of an army", arabic: "جندي" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "wish", icon: "🌠", description: "a desire", arabic: "أمنية/رغبة" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "attack", icon: "⚔️", description: "a violent act against someone", arabic: "هجوم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "cancer treatment", icon: "💊", description: "medical care for cancer", arabic: "علاج السرطان" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "brave", icon: "🦁", description: "not afraid of danger", arabic: "شجاع" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "terrorist", icon: "💣", description: "a person who uses violence for political aims", arabic: "إرهابي" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "inspiring", icon: "✨", description: "making you want to do something", arabic: "ملهم/محفز" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "determination", icon: "💪", description: "the quality of not giving up", arabic: "العزيمة" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "cheap", icon: "💰", description: "low in price", arabic: "رخيص" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "army", icon: "🎖️", description: "a country's military force", arabic: "جيش" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "give up", icon: "🏳️", description: "to stop trying", arabic: "يستسلم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "camp", icon: "⛺", description: "a place where soldiers stay", arabic: "معسكر" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "continue", icon: "➡️", description: "to keep going", arabic: "يستمر" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "knowledge", icon: "📚", description: "information and understanding", arabic: "معرفة" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "defend", icon: "🛡️", description: "to protect from attack", arabic: "يدافع عن" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "scientist", icon: "🔬", description: "a person who studies science", arabic: "عالم" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "protect", icon: "🛡️", description: "to keep safe", arabic: "يحمي" },
+  { unit: "Unit 3", lesson: "Lesson 1&2", word: "moving spirit", icon: "🔥", description: "a person who motivates others", arabic: "روح ملهمة" },
+
+  // ===== UNIT 3 - Lesson 3 (SB pages 46-47, page 11) =====
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "athlete", icon: "🏃", description: "a person who is good at sports", arabic: "شخص رياضي" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "location", icon: "📍", description: "a place", arabic: "موقع جغرافي" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "writer", icon: "✍️", description: "a person who writes books", arabic: "كاتب" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "medal", icon: "🏅", description: "a metal award", arabic: "ميدالية" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "geography", icon: "🌍", description: "the study of the Earth", arabic: "جغرافيا" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "strong ideas", icon: "💡", description: "powerful thoughts", arabic: "أفكار قوية" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "history", icon: "📜", description: "the study of the past", arabic: "تاريخ" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "famous", icon: "🌟", description: "known by many people", arabic: "مشهور" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "role", icon: "🎭", description: "a part played by someone", arabic: "دور" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "full of pride", icon: "🦚", description: "feeling very proud", arabic: "مليء بالفخر" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "politics", icon: "🏛️", description: "government activities", arabic: "السياسة" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "special", icon: "⭐", description: "different and important", arabic: "خاص/غير عادي" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "works", icon: "📚", description: "books or art created by someone", arabic: "أعمال أدبية" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "powerful", icon: "💪", description: "strong", arabic: "قوي" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "arts", icon: "🎨", description: "creative activities like painting", arabic: "الفنون" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "later", icon: "⏰", description: "at a future time", arabic: "فيما بعد" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "deep thinker", icon: "🤔", description: "a person who thinks deeply", arabic: "مفكر عميق" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "including", icon: "➕", description: "having as a part", arabic: "مشتملاً على" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "geographer", icon: "🗺️", description: "a person who studies geography", arabic: "جغرافي" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "explain", icon: "💬", description: "to make clear", arabic: "يشرح" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "award", icon: "🏆", description: "an official prize", arabic: "جائزة رسمية" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "combine", icon: "🔗", description: "to join together", arabic: "يضم/يوحد" },
+  { unit: "Unit 3", lesson: "Lesson 3&4", word: "thinker", icon: "💭", description: "a person who thinks", arabic: "مفكر" },
+
+  // ===== UNIT 3 - Lessons 5&6 (SB pages 50-54, page 12) =====
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "kidney diseases", icon: "🫘", description: "illnesses of the kidney", arabic: "أمراض الكلى" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "the Olympics", icon: "🏅", description: "the international sports competition", arabic: "الألعاب الأولمبية" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "kidney transplant", icon: "🏥", description: "a medical operation to replace a kidney", arabic: "زراعة الكلى" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "national", icon: "🚩", description: "relating to a country", arabic: "قومي/محلي" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "method", icon: "⚙️", description: "a way of doing something", arabic: "طريقة/أسلوب" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "international", icon: "🌍", description: "involving many countries", arabic: "دولي" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "patient", icon: "🤒", description: "a person receiving medical care", arabic: "مريض" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "face", icon: "😐", description: "to deal with a problem", arabic: "يواجه" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "situation", icon: "📍", description: "a set of circumstances", arabic: "وضع أو موقف" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "determined", icon: "💪", description: "not giving up", arabic: "مثابر/مصمم" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "swimmer", icon: "🏊", description: "a person who swims", arabic: "سباح" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "admire", icon: "🌟", description: "to respect and like", arabic: "يعجب" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "swimming", icon: "🏊", description: "the sport of moving through water", arabic: "السباحة" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "train", icon: "🏋️", description: "to practice for a sport", arabic: "يتدرب" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "dreams", icon: "💭", description: "hopes for the future", arabic: "أحلام" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "support", icon: "🤝", description: "to help and encourage", arabic: "يدعم/يساند" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "world champion", icon: "🏆", description: "the best in the world in a sport", arabic: "بطل عالمي" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "challenges", icon: "⛰️", description: "difficult tasks", arabic: "تحديات" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "coach", icon: "📋", description: "a person who trains athletes", arabic: "مدرب" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "healthier", icon: "💚", description: "more healthy", arabic: "أكثر صحة" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "leader", icon: "👑", description: "a person who leads", arabic: "قائد" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "overcome", icon: "🏆", description: "to defeat or succeed against", arabic: "يتغلب على/يقهر" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "dedication", icon: "🔥", description: "giving a lot of time and effort", arabic: "تكريس الوقت والجهد" },
+  { unit: "Unit 3", lesson: "Lesson 5&6", word: "biography", icon: "📖", description: "the story of a person's life", arabic: "سيرة ذاتية" },
+
+  // ===== UNIT 4 - Lessons 1&2 (SB pages 60-63, page 15) =====
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "decision", icon: "🤔", description: "a choice you can make", arabic: "قرار" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "left out", icon: "🚫", description: "excluded or not included", arabic: "مستبعد/منبوذ" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "consequence", icon: "⚖️", description: "a result of an action", arabic: "عاقبة/نتيجة" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "careless", icon: "🙈", description: "not paying attention", arabic: "مهمل" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "goal", icon: "🎯", description: "something you aim for", arabic: "هدف" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "positive", icon: "➕", description: "good or hopeful", arabic: "إيجابي" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "benefit", icon: "🎁", description: "an advantage", arabic: "فائدة" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "negative", icon: "➖", description: "bad or harmful", arabic: "سلبي" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "responsible", icon: "🙋", description: "having a duty to do something", arabic: "مسؤول" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "evaluate", icon: "📊", description: "to think carefully before deciding", arabic: "يقدر/يقيم" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "option", icon: "🔀", description: "a choice", arabic: "بديل/اختيار" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "smart", icon: "🧠", description: "clever", arabic: "ذكي" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "result", icon: "📋", description: "what happens because of something", arabic: "نتيجة" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "affect", icon: "🔄", description: "to influence", arabic: "يؤثر على" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "poor choice", icon: "❌", description: "a bad decision", arabic: "اختيار سيء" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "promise", icon: "🤝", description: "to say you will definitely do something", arabic: "يُعد" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "competition", icon: "🏆", description: "an event where people try to win", arabic: "مسابقة" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "skip", icon: "⏭️", description: "to miss or not do", arabic: "يفوت" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "classmate", icon: "👥", description: "a person in your class", arabic: "زميل الفصل" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "cause", icon: "⚡", description: "to make something happen", arabic: "يسبب" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "success", icon: "🏆", description: "achieving what you want", arabic: "نجاح" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "invite", icon: "💌", description: "to ask someone to come", arabic: "يدعو" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "polite", icon: "🙇", description: "showing good manners", arabic: "مهذب" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "join", icon: "➕", description: "to become a member", arabic: "يشارك" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "healthy", icon: "💚", description: "good for your body", arabic: "صحي/بصحة جيدة" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "behave", icon: "🎭", description: "to act in a certain way", arabic: "يتصرف" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "close", icon: "👨‍👩‍👧", description: "near or dear", arabic: "مقرب" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "encourage", icon: "💪", description: "to give support", arabic: "يشجع" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "uncomfortable", icon: "😣", description: "not at ease", arabic: "منزعج/غير مرتاح" },
+  { unit: "Unit 4", lesson: "Lesson 1&2", word: "improve", icon: "📈", description: "to make better", arabic: "يتحسن" },
+
+  // ===== UNIT 4 - Lesson 3 (SB pages 64-65, page 16) =====
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "risk", icon: "⚠️", description: "the possibility of danger", arabic: "مخاطرة" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "problem-solving", icon: "🧩", description: "finding solutions to problems", arabic: "حل المشكلات" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "influence", icon: "💫", description: "the power to affect someone", arabic: "تأثير" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "impact", icon: "💥", description: "a strong effect", arabic: "أثر/تأثير" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "problem", icon: "❗", description: "a difficulty", arabic: "مشكلة" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "injury", icon: "🤕", description: "physical harm", arabic: "إصابة" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "recover", icon: "🩹", description: "to get better after being ill", arabic: "يتعافى/يشفى" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "interviewer", icon: "🎙️", description: "a person who asks questions", arabic: "محاور/مذيع" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "coach", icon: "📋", description: "a person who trains athletes", arabic: "مدرب" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "gold", icon: "🥇", description: "a precious metal; first place medal", arabic: "ذهب" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "personal letter", icon: "✉️", description: "a letter to a friend or family", arabic: "خطاب شخصي" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "accident", icon: "💥", description: "an unexpected harmful event", arabic: "حادثة" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "medal", icon: "🏅", description: "a metal award", arabic: "ميدالية" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "athlete", icon: "🏃", description: "a sports person", arabic: "لاعب رياضي" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "race", icon: "🏁", description: "a competition of speed", arabic: "سباق" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "training", icon: "🏋️", description: "practice for a sport", arabic: "تدريب" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "wise", icon: "🦉", description: "having good judgment", arabic: "حكيم" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "tough", icon: "💪", description: "difficult", arabic: "صعب" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "worse", icon: "⬇️", description: "less good", arabic: "أسوأ/أكثر سوء" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "rest", icon: "😴", description: "to relax", arabic: "يستريح" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "miss", icon: "⏭️", description: "to not do or attend", arabic: "يفوت" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "fully", icon: "💯", description: "completely", arabic: "تماماً/بشكل كامل" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "injure", icon: "🤕", description: "to hurt", arabic: "يصيب" },
+  { unit: "Unit 4", lesson: "Lesson 3&4", word: "choose", icon: "🔀", description: "to pick", arabic: "يختار" },
+
+  // ===== UNIT 4 - Lessons 5&6 (SB pages 68-70, page 17) =====
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "schoolwork", icon: "📚", description: "work done for school", arabic: "العمل/الواجبات المدرسية" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "whether", icon: "❓", description: "if", arabic: "سواء" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "project", icon: "📊", description: "a piece of work", arabic: "مشروع" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "effectively", icon: "⚡", description: "in a way that works well", arabic: "بشكل فعال/بكفاءة" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "blog post", icon: "📝", description: "an article on a blog", arabic: "منشور في مدونة" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "later", icon: "⏰", description: "at a future time", arabic: "لاحقاً" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "free time", icon: "🕐", description: "time when you are not busy", arabic: "وقت الفراغ" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "explore", icon: "🔍", description: "to discover", arabic: "يستكشف" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "hobby", icon: "🎨", description: "an activity you enjoy", arabic: "هواية" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "receive", icon: "📥", description: "to get", arabic: "يستلم" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "worried", icon: "😟", description: "anxious", arabic: "قلق" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "save", icon: "💾", description: "to keep for later", arabic: "يحفظ" },
+  { unit: "Unit 4", lesson: "Lesson 5&6", word: "stressed", icon: "😫", description: "under pressure", arabic: "متوتر/مضغوط" },
+
+  // ===== UNIT 5 - Lessons 1&2 (SB pages 74-77, page 19) =====
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "ambition", icon: "🌟", description: "a strong desire to succeed", arabic: "طموح" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "goal", icon: "🎯", description: "something you aim for", arabic: "هدف" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "opportunities", icon: "🚪", description: "chances to do something", arabic: "فرص" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "dream job", icon: "💼", description: "the job you really want", arabic: "الوظيفة التي أحلم بها" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "designers", icon: "🎨", description: "people who create designs", arabic: "مصممون" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "bright future", icon: "🌅", description: "a good future", arabic: "مستقبل مشرق" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "path", icon: "🛤️", description: "a way or course in life", arabic: "مسار في الحياة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "plan", icon: "📋", description: "to decide what to do", arabic: "يخطط/خطة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "passion", icon: "❤️", description: "strong love for something", arabic: "شغف" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "discover", icon: "🔍", description: "to find out", arabic: "يكتشف" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "profession", icon: "👔", description: "a job", arabic: "مهنة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "develop", icon: "📈", description: "to grow or improve", arabic: "يطور" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "talent", icon: "🌟", description: "a natural ability", arabic: "موهبة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "explore", icon: "🔍", description: "to discover", arabic: "يستكشف" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "effort", icon: "💪", description: "hard work", arabic: "جهد" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "graphic designer", icon: "🖌️", description: "a person who designs visuals", arabic: "مصمم جرافيك" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "interview", icon: "🎙️", description: "a meeting for a job", arabic: "مقابلة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "art program", icon: "🖥️", description: "software for creating art", arabic: "برنامج رسم" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "scientist", icon: "🔬", description: "a person who studies science", arabic: "عالم" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "real", icon: "✅", description: "true", arabic: "حقيقي" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "astronaut", icon: "👨‍🚀", description: "a person who travels to space", arabic: "رائد فضاء" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "confidence", icon: "💪", description: "belief in yourself", arabic: "ثقة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "medicine", icon: "💊", description: "the science of treating illness", arabic: "طب" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "career path", icon: "🛤️", description: "the course of your working life", arabic: "المسار المهني" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "ability", icon: "🛠️", description: "the power to do something", arabic: "قدرة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "geology", icon: "🪨", description: "the study of rocks", arabic: "جيولوجيا" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "own", icon: "🔑", description: "belonging to you", arabic: "ملكه/خاصته" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "chemistry", icon: "🧪", description: "the science of substances", arabic: "الكيمياء" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "tired", icon: "😴", description: "needing rest", arabic: "متعب" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "NASA", icon: "🚀", description: "the US space agency", arabic: "وكالة ناسا الفضائية" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "natural", icon: "🌿", description: "existing in nature", arabic: "طبيعي" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "Apollo mission", icon: "🌕", description: "the US space mission to the moon", arabic: "مهمة أبولو" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "graduate", icon: "🎓", description: "to finish university", arabic: "يتخرج" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "landing sites", icon: "🛬", description: "places where spacecraft land", arabic: "مواقع الهبوط" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "prepare", icon: "📝", description: "to get ready", arabic: "يحضر/يعد" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "advertisement", icon: "📢", description: "a notice promoting something", arabic: "إعلان" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "design", icon: "🎨", description: "to create a plan or drawing", arabic: "يصمم" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "whatever", icon: "🔄", description: "anything that", arabic: "أياً كان" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "succeed", icon: "🏆", description: "to achieve success", arabic: "ينجح" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "workshop", icon: "🛠️", description: "a practical class or meeting", arabic: "ورشة عمل" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "support", icon: "🤝", description: "to help", arabic: "يدعم/دعم" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "rule", icon: "📏", description: "a regulation", arabic: "قاعدة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "fail", icon: "❌", description: "to not succeed", arabic: "يفشل/يرسب" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "reality", icon: "🌍", description: "the real world", arabic: "واقع/واقعة" },
+  { unit: "Unit 5", lesson: "Lesson 1&2", word: "select", icon: "✅", description: "to choose", arabic: "يختار" },
+
+  // ===== UNIT 5 - Lesson 3 (SB pages 78-79, page 20) =====
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "university", icon: "🎓", description: "a place for higher study", arabic: "جامعة" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "talent", icon: "🌟", description: "a natural ability", arabic: "موهبة" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "training", icon: "🏋️", description: "practicing skills", arabic: "تدريب" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "skill", icon: "🛠️", description: "an ability", arabic: "مهارة" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "education", icon: "📚", description: "learning at school or university", arabic: "تعليم" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "wish", icon: "🌠", description: "a strong hope for something", arabic: "يتمنى" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "success", icon: "🏆", description: "achieving what you want", arabic: "نجاح" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "achieve", icon: "✅", description: "to reach something you worked for", arabic: "يحقق/ينجز" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "prize", icon: "🏆", description: "an award", arabic: "جائزة" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "regularly", icon: "🔄", description: "at fixed times", arabic: "بانتظام" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "communication", icon: "💬", description: "sharing information", arabic: "تواصل" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "match", icon: "🔗", description: "to suit or go well with", arabic: "يناسب/يلائم" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "future career", icon: "💼", description: "the job you will do in the future", arabic: "سيرة مهنية مستقبلية" },
+  { unit: "Unit 5", lesson: "Lesson 3&4", word: "profession", icon: "👔", description: "a job", arabic: "حرفة/مهنة" },
+
+  // ===== UNIT 5 - Lessons 5&6 (SB pages 82-85, page 21) =====
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "creative", icon: "🎨", description: "good at making new things", arabic: "مبدع" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "get ready", icon: "🏁", description: "to prepare", arabic: "يستعد" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "mind map", icon: "🧠", description: "a visual tool to organize ideas", arabic: "خريطة ذهنية" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "treat", icon: "🩺", description: "to behave towards or give medical care", arabic: "يعالج/يعامل" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "favorite", icon: "⭐", description: "liked best", arabic: "مفضل" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "special", icon: "✨", description: "different and important", arabic: "خاص" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "engineering", icon: "⚙️", description: "the study of building and machines", arabic: "الهندسة" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "good side", icon: "👍", description: "the positive aspect", arabic: "الجانب الإيجابي" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "hard side", icon: "👎", description: "the difficult or negative aspect", arabic: "الجانب الصعب" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "sick animals", icon: "🐾", description: "animals that are ill", arabic: "حيوانات مريضة" },
+  { unit: "Unit 5", lesson: "Lesson 5&6", word: "vet", icon: "🩺", description: "a doctor for animals", arabic: "طبيب بيطري" },
+
+  // ===== UNIT 6 - Lessons 1&2 (SB pages 88-91, page 23) =====
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "global citizen", icon: "🌍", description: "a person who cares about the whole world", arabic: "مواطن عالمي" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "encourage", icon: "💪", description: "to help people do good things", arabic: "يشجع" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "environment", icon: "🌿", description: "the world around us", arabic: "البيئة" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "improve", icon: "📈", description: "to make better", arabic: "يحسن" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "peace", icon: "🕊️", description: "freedom from war", arabic: "سلام" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "follow", icon: "➡️", description: "to go after or obey", arabic: "يتبع" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "responsibility", icon: "🙋", description: "a duty", arabic: "مسؤولية" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "volunteer", icon: "🤲", description: "to give your time to help others without being paid", arabic: "يتطوع" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "unfair", icon: "⚖️", description: "not treating people equally", arabic: "غير عادل" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "protect", icon: "🛡️", description: "to look after or save", arabic: "يحمي" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "electricity", icon: "⚡", description: "power for lights and machines", arabic: "كهرباء" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "rubbish", icon: "🗑️", description: "trash", arabic: "قمامة" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "nature", icon: "🌳", description: "the natural world", arabic: "الطبيعة" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "safe", icon: "🛡️", description: "not in danger", arabic: "آمن" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "care", icon: "❤️", description: "looking after someone", arabic: "رعاية" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "waste", icon: "🗑️", description: "to use badly or throw away", arabic: "يضيع/يهدر" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "community", icon: "🏘️", description: "a group of people living together", arabic: "مجتمع" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "believe", icon: "🙏", description: "to think something is true", arabic: "يصدق/يعتقد" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "traditions", icon: "🎎", description: "customs passed down", arabic: "تقاليد" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "change", icon: "🔄", description: "to make different", arabic: "يغير" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "citizenship", icon: "🪪", description: "being a member of a country", arabic: "مواطنة" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "save", icon: "💾", description: "to keep or rescue", arabic: "ينقذ" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "justice", icon: "⚖️", description: "fairness", arabic: "العدل" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "contribute", icon: "🤲", description: "to give or help", arabic: "يساهم" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "project", icon: "📊", description: "a piece of work", arabic: "مشروع" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "inspire", icon: "✨", description: "to motivate", arabic: "يلهم" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "leader", icon: "👑", description: "a person who leads", arabic: "قائد" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "treat", icon: "🤝", description: "to behave towards", arabic: "يعامل" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "rule", icon: "📏", description: "a regulation", arabic: "قاعدة" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "respect", icon: "🙏", description: "admiration for someone", arabic: "يحترم/احترام" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "law", icon: "📜", description: "an official rule", arabic: "قانون" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "join", icon: "➕", description: "to become a member", arabic: "يلتحق" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "planet", icon: "🌍", description: "a world in space", arabic: "كوكب" },
+  { unit: "Unit 6", lesson: "Lesson 1&2", word: "collect", icon: "📦", description: "to gather", arabic: "يجمع" },
+
+  // ===== UNIT 6 - Lesson 3 (SB pages 92-93, page 25) =====
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "responsibility", icon: "🙋", description: "a duty", arabic: "مسؤولية" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "danger", icon: "⚠️", description: "the possibility of harm", arabic: "خطر" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "environment", icon: "🌿", description: "the natural world", arabic: "بيئة" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "impact", icon: "💥", description: "a strong effect", arabic: "تأثير" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "diversity", icon: "🌈", description: "variety", arabic: "تنوع" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "reusable", icon: "♻️", description: "can be used again", arabic: "قابل لإعادة الاستخدام" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "creature", icon: "🐾", description: "a living animal", arabic: "مخلوق" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "generations", icon: "👨‍👩‍👧‍👦", description: "groups of people born at the same time", arabic: "أجيال" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "clean-ups", icon: "🧹", description: "events to clean places", arabic: "عمليات التنظيف" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "participate", icon: "🙋", description: "to take part", arabic: "يشارك" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "reduce", icon: "📉", description: "to make less", arabic: "يقلل" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "items", icon: "📦", description: "things", arabic: "عناصر" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "purpose", icon: "🎯", description: "the reason for something", arabic: "غرض" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "sea life", icon: "🐠", description: "animals living in the sea", arabic: "الحياة البحرية" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "quality", icon: "⭐", description: "how good something is", arabic: "جودة" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "rights", icon: "⚖️", description: "things you are allowed to have", arabic: "حقوق" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "beauty", icon: "🌸", description: "the quality of being beautiful", arabic: "جمال" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "waste", icon: "🗑️", description: "unwanted material", arabic: "مخلفات/نفايات" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "cultures", icon: "🎭", description: "ways of life of groups", arabic: "ثقافات" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "ocean", icon: "🌊", description: "a very large sea", arabic: "محيط" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "right", icon: "✅", description: "correct", arabic: "حق/صحيح" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "terrible", icon: "😱", description: "very bad", arabic: "فظيع" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "instead", icon: "🔄", description: "in place of", arabic: "بدلاً من ذلك" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "act", icon: "🎭", description: "to do something", arabic: "يمثل/يتصرف" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "connect", icon: "🔗", description: "to join", arabic: "يوصل" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "depend", icon: "🤝", description: "to rely on", arabic: "يعتمد" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "though", icon: "💭", description: "although", arabic: "بالرغم من" },
+  { unit: "Unit 6", lesson: "Lesson 3&4", word: "entertain", icon: "🎬", description: "to amuse", arabic: "يسلي" },
+
+  // ===== UNIT 6 - Lessons 5&6 (SB pages 95-100, page 26) =====
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "social media", icon: "📱", description: "websites and apps for sharing content", arabic: "وسائل التواصل الاجتماعي" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "success", icon: "🏆", description: "achieving what you want", arabic: "نجاح" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "post", icon: "📝", description: "something published online", arabic: "منشور" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "idea", icon: "💡", description: "a thought", arabic: "فكرة" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "attention", icon: "👀", description: "notice or focus", arabic: "انتباه" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "circle", icon: "⭕", description: "a round shape", arabic: "دائرة" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "planet", icon: "🌍", description: "a world in space", arabic: "كوكب" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "catchy", icon: "🎣", description: "easy to remember", arabic: "جذاب" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "intro", icon: "🎬", description: "an introduction", arabic: "مقدمة" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "respectful", icon: "🙏", description: "showing respect", arabic: "محترم للآخرين" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "trash", icon: "🗑️", description: "rubbish", arabic: "قمامة" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "own", icon: "🔑", description: "belonging to you", arabic: "خاص" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "posters", icon: "🖼️", description: "large printed pictures", arabic: "ملصقات" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "like", icon: "👍", description: "to enjoy", arabic: "يحب" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "recycling", icon: "♻️", description: "processing waste to reuse", arabic: "التدوير/إعادة الاستخدام" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "pass", icon: "➡️", description: "to go by or give", arabic: "يمر/يناول" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "emoji", icon: "😊", description: "a small digital symbol", arabic: "رمز تعبيري" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "plan", icon: "📋", description: "to decide what to do", arabic: "يخطط" },
+  { unit: "Unit 6", lesson: "Lesson 5&6", word: "symbol", icon: "🔣", description: "a sign", arabic: "رمز" },
+
+  // ===== Unit 4,5,6 Vocabulary (page 28) =====
+  { unit: "Unit 4", lesson: "Review", word: "New Alamein City", icon: "🏙️", description: "a new city in Egypt", arabic: "مدينة العلمين الجديدة" },
+  { unit: "Unit 4", lesson: "Review", word: "progress", icon: "📈", description: "forward movement or improvement", arabic: "تقدم" },
+  { unit: "Unit 4", lesson: "Review", word: "coastal", icon: "🏖️", description: "near the coast", arabic: "ساحلي" },
+  { unit: "Unit 4", lesson: "Review", word: "negative", icon: "➖", description: "bad", arabic: "سلبي" },
+  { unit: "Unit 4", lesson: "Review", word: "destination", icon: "📍", description: "the place you are going to", arabic: "وجهة/جهة الوصول" },
+  { unit: "Unit 4", lesson: "Review", word: "positive", icon: "➕", description: "good", arabic: "إيجابي" },
+  { unit: "Unit 4", lesson: "Review", word: "facilities", icon: "🏢", description: "buildings and services", arabic: "مرافق" },
+  { unit: "Unit 4", lesson: "Review", word: "advice", icon: "💡", description: "a suggestion", arabic: "نصيحة" },
+  { unit: "Unit 4", lesson: "Review", word: "injury", icon: "🤕", description: "physical harm", arabic: "إصابة" },
+  { unit: "Unit 4", lesson: "Review", word: "real", icon: "✅", description: "true", arabic: "حقيقي" },
+  { unit: "Unit 4", lesson: "Review", word: "opportunities", icon: "🚪", description: "chances", arabic: "فرص" },
+  { unit: "Unit 4", lesson: "Review", word: "amount", icon: "📊", description: "a quantity", arabic: "كمية" },
+  { unit: "Unit 4", lesson: "Review", word: "passion", icon: "❤️", description: "strong love for something", arabic: "شغف" },
+  { unit: "Unit 4", lesson: "Review", word: "marvelous", icon: "🌟", description: "wonderful", arabic: "رائع" },
+  { unit: "Unit 4", lesson: "Review", word: "consequences", icon: "⚖️", description: "results of actions", arabic: "عواقب" },
+  { unit: "Unit 4", lesson: "Review", word: "designed", icon: "🎨", description: "created or planned", arabic: "مصمم" },
+  { unit: "Unit 4", lesson: "Review", word: "talent", icon: "🌟", description: "a natural ability", arabic: "موهبة" },
+  { unit: "Unit 4", lesson: "Review", word: "advanced", icon: "🚀", description: "modern and highly developed", arabic: "متقدم" },
+  { unit: "Unit 4", lesson: "Review", word: "decision", icon: "🤔", description: "a choice", arabic: "قرار" },
+  { unit: "Unit 4", lesson: "Review", word: "urban", icon: "🏙️", description: "relating to a city", arabic: "حضري" },
+  { unit: "Unit 4", lesson: "Review", word: "smart", icon: "🧠", description: "clever", arabic: "ذكي" },
+  { unit: "Unit 4", lesson: "Review", word: "economy", icon: "💰", description: "a country's financial system", arabic: "اقتصاد" },
+  { unit: "Unit 4", lesson: "Review", word: "tourism", icon: "✈️", description: "traveling for pleasure", arabic: "السياحة" },
+  { unit: "Unit 4", lesson: "Review", word: "unique", icon: "⭐", description: "different from everything else", arabic: "فريدة من نوعه" },
+  { unit: "Unit 4", lesson: "Review", word: "available", icon: "✅", description: "ready to be used", arabic: "متوفر/متاح" },
+  { unit: "Unit 4", lesson: "Review", word: "bright", icon: "🌅", description: "shining or hopeful", arabic: "لامع" },
+  { unit: "Unit 4", lesson: "Review", word: "options", icon: "🔀", description: "choices", arabic: "خيارات" },
+  { unit: "Unit 4", lesson: "Review", word: "interests", icon: "🎯", description: "things you like", arabic: "اهتمامات" },
+  { unit: "Unit 4", lesson: "Review", word: "focusing on", icon: "🔍", description: "giving attention to", arabic: "مركزاً على" },
+  { unit: "Unit 4", lesson: "Review", word: "failure", icon: "❌", description: "not succeeding", arabic: "فشل" },
+  { unit: "Unit 4", lesson: "Review", word: "side", icon: "📐", description: "an aspect", arabic: "جانب" },
+  { unit: "Unit 4", lesson: "Review", word: "goals", icon: "🎯", description: "aims", arabic: "أهداف" },
+  { unit: "Unit 4", lesson: "Review", word: "adult", icon: "🧑", description: "a grown-up person", arabic: "بالغ/رشد" },
+  { unit: "Unit 4", lesson: "Review", word: "climate change", icon: "🌡️", description: "changes in the Earth's weather", arabic: "تغير المناخ" },
+  { unit: "Unit 4", lesson: "Review", word: "career", icon: "💼", description: "a job or profession", arabic: "حياة مهنية" },
+  { unit: "Unit 4", lesson: "Review", word: "besides", icon: "➕", description: "in addition", arabic: "بالإضافة إلى" },
+  { unit: "Unit 4", lesson: "Review", word: "absolutely", icon: "💯", description: "completely", arabic: "كلياً/تماماً" },
+  { unit: "Unit 4", lesson: "Review", word: "attract", icon: "🧲", description: "to pull towards", arabic: "يجذب" },
+  { unit: "Unit 4", lesson: "Review", word: "endangered", icon: "🐾", description: "at risk of extinction", arabic: "مهدد بالانقراض" },
+  { unit: "Unit 4", lesson: "Review", word: "combine", icon: "🔗", description: "to join together", arabic: "يوحد" },
+  { unit: "Unit 4", lesson: "Review", word: "passport", icon: "🛂", description: "a document for travel", arabic: "جواز سفر" },
+  { unit: "Unit 4", lesson: "Review", word: "include", icon: "➕", description: "to contain", arabic: "يشتمل على" },
+  { unit: "Unit 4", lesson: "Review", word: "coast", icon: "🏖️", description: "land by the sea", arabic: "ساحل" },
+  { unit: "Unit 4", lesson: "Review", word: "compete", icon: "🏁", description: "to try to win", arabic: "ينافس" },
+  { unit: "Unit 4", lesson: "Review", word: "technology", icon: "⚙️", description: "scientific knowledge", arabic: "تكنولوجيا" },
+  { unit: "Unit 4", lesson: "Review", word: "ignore", icon: "🙈", description: "to pay no attention to", arabic: "يتجاهل" },
+  { unit: "Unit 4", lesson: "Review", word: "luxury", icon: "💎", description: "great comfort", arabic: "رفاهية" },
+  { unit: "Unit 4", lesson: "Review", word: "reduce", icon: "📉", description: "to make less", arabic: "يقلل" },
+  { unit: "Unit 4", lesson: "Review", word: "resort", icon: "🏨", description: "a vacation place", arabic: "منتجع" },
+  { unit: "Unit 4", lesson: "Review", word: "produce", icon: "🏭", description: "to make", arabic: "ينتج" },
+  { unit: "Unit 4", lesson: "Review", word: "international", icon: "🌍", description: "involving many countries", arabic: "دولي" },
+  { unit: "Unit 4", lesson: "Review", word: "relax", icon: "😌", description: "to rest", arabic: "يستريح" },
+  { unit: "Unit 4", lesson: "Review", word: "culture center", icon: "🏛️", description: "a place for cultural activities", arabic: "مركز ثقافي" },
+  { unit: "Unit 4", lesson: "Review", word: "lead to", icon: "➡️", description: "to cause", arabic: "يؤدي إلى" },
+  { unit: "Unit 4", lesson: "Review", word: "residential areas", icon: "🏘️", description: "places where people live", arabic: "مناطق سكنية" },
+  { unit: "Unit 4", lesson: "Review", word: "on your own", icon: "👤", description: "alone", arabic: "بمفردك" },
+  { unit: "Unit 4", lesson: "Review", word: "location", icon: "📍", description: "a place", arabic: "موقع" },
+  { unit: "Unit 4", lesson: "Review", word: "do our part", icon: "🤝", description: "to do our share of work", arabic: "نقوم بدورنا" },
+  { unit: "Unit 4", lesson: "Review", word: "symbol", icon: "🔣", description: "a sign", arabic: "رمز" }
+        ];
+        
+        // --- Core Application State Machine Variables ---
+        let flashcards = [];
+        let activeScopeSet = [];
+        let currentCardIndex = 0;
+        let currentMode = 'memorize';
+        let searchLanguage = 'en'; 
+        let isAutoplaying = false;
+        let autoplayTimeout = null;
+        let speechRate = 1.0;
+
+        // Interactive Domain Sub-states
+        let currentQuizLevel = 1;
+        let quizQuestions = [];
+        let currentQuizIndex = 0;
+        let score = 0;
+        let selectedWordEl = null;
+        let selectedMeaningEl = null;
+        let matchScore = 0;
+        let pairsToMatch = 0;
+        let hangmanWordToGuess = '';
+        let hangmanCardToGuess = null;
+        let hangmanGuessedLetters = [];
+        let hangmanWrongGuesses = 0;
+        const HANGMAN_MAX_WRONG = 6;
+        let scrambleWordToGuess = null;
+        let scrambleScore = 0;
+        let spellingBeeCardToGuess = null;
+        let spellingBeeScore = 0;
+        let spellingBeeLives = 0;
+        const SPELLING_BEE_MAX_LIVES = 5;
+
+        // --- UI Element Elements References ---
+        const unitSelect = document.getElementById('unitSelect');
+        const lessonSelect = document.getElementById('lessonSelect');
+        const cardContainer = document.getElementById('cardContainer');
+        const memorizeView = document.getElementById('memorizeView');
+        const levelSelectView = document.getElementById('levelSelectView');
+        const level1Btn = document.getElementById('level1Btn');
+        const level2Btn = document.getElementById('level2Btn');
+        const quizView = document.getElementById('quizView');
+        const wordFront = document.getElementById('wordFront');
+        const description = document.getElementById('description');
+        const arabicMeaning = document.getElementById('arabicMeaning');
+        const cardIcon = document.getElementById('cardIcon');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const autoplayBtn = document.getElementById('autoplayBtn');
+        const progress = document.getElementById('progress');
+        const wordList = document.getElementById('wordList');
+        const notification = document.getElementById('notification');
+        const pronounceBtn = document.getElementById('pronounceBtn');
+        
+        // Mode Management DOM Hooks
+        const memorizeModeBtn = document.getElementById('memorizeModeBtn');
+        const searchModeBtn = document.getElementById('searchModeBtn');
+        const quizModeBtn = document.getElementById('quizModeBtn');
+        const gamesModeBtn = document.getElementById('gamesModeBtn');
+        const memorizeNav = document.getElementById('memorizeNav');
+        const quizLengthInput = document.getElementById('quizLengthInput');
+        const quizProgress = document.getElementById('quizProgress');
+        const quizScore = document.getElementById('quizScore');
+        const restartQuizBtn = document.getElementById('restartQuizBtn');
+        const quizQuestionText = document.getElementById('quizQuestionText');
+        const quizQuestionLevel1 = document.getElementById('quizQuestionLevel1');
+        const quizQuestionIcon = document.getElementById('quizQuestionIcon');
+        const quizQuestionWord = document.getElementById('quizQuestionWord');
+        const quizOptions = document.getElementById('quizOptions');
+        const searchSection = document.getElementById('searchSection');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const searchLangEnBtn = document.getElementById('searchLangEnBtn');
+        const searchLangArBtn = document.getElementById('searchLangArBtn');
+        const controlsSection = document.getElementById('controlsSection');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
+        const pronounceWordCheck = document.getElementById('pronounceWordCheck');
+        const pronounceArabicCheck = document.getElementById('pronounceArabicCheck');
+        const pronounceDescriptionCheck = document.getElementById('pronounceDescriptionCheck');
+
+        // Miniature Modules Reference Node bindings
+        const gamesSection = document.getElementById('gamesSection');
+        const gameMenuView = document.getElementById('gameMenuView');
+        const startMatchingGameBtn = document.getElementById('startMatchingGameBtn');
+        const matchingGameContainer = document.getElementById('matchingGameContainer');
+        const restartMatchingGameBtn = document.getElementById('restartMatchingGameBtn');
+        const matchScoreEl = document.getElementById('matchScore');
+        const matchWordsColumn = document.getElementById('matchWordsColumn');
+        const matchMeaningsColumn = document.getElementById('matchMeaningsColumn');
+        const startHangmanGameBtn = document.getElementById('startHangmanGameBtn');
+        const hangmanGameContainer = document.getElementById('hangmanGameContainer');
+        const restartHangmanGameBtn = document.getElementById('restartHangmanGameBtn');
+        const hangmanLivesEl = document.getElementById('hangmanLives');
+        const hangmanWordEl = document.getElementById('hangmanWord');
+        const hangmanKeyboard = document.getElementById('hangmanKeyboard');
+        const startWordScrambleGameBtn = document.getElementById('startWordScrambleGameBtn');
+        const wordScrambleGameContainer = document.getElementById('wordScrambleGameContainer');
+        const restartWordScrambleGameBtn = document.getElementById('restartWordScrambleGameBtn');
+        const scrambleScoreEl = document.getElementById('scrambleScore');
+        const scrambledWordEl = document.getElementById('scrambledWord');
+        const scrambleGuessInput = document.getElementById('scrambleGuessInput');
+        const submitScrambleBtn = document.getElementById('submitScrambleBtn');
+        const skipScrambleBtn = document.getElementById('skipScrambleBtn');
+        const startSpellingBeeGameBtn = document.getElementById('startSpellingBeeGameBtn');
+        const spellingBeeGameContainer = document.getElementById('spellingBeeGameContainer');
+        const restartSpellingBeeGameBtn = document.getElementById('restartSpellingBeeGameBtn');
+        const spellingBeeScoreEl = document.getElementById('spellingBeeScore');
+        const spellingBeeLivesEl = document.getElementById('spellingBeeLives');
+        const hearWordAgainBtn = document.getElementById('hearWordAgainBtn');
+        const spellingBeeHint = document.getElementById('spellingBeeHint');
+        const spellingGuessInput = document.getElementById('spellingGuessInput');
+        const submitSpellingBtn = document.getElementById('submitSpellingBtn');
+        const skipSpellingBtn = document.getElementById('skipSpellingBtn');
+
+        // --- Application Initialization Layer ---
+        document.addEventListener('DOMContentLoaded', () => {
+            buildCascadingSelectors();
+            syncActiveDataPool();
+            switchMode('memorize');
+        });
+
+        function buildCascadingSelectors() {
+            // Distinct list of units extracted from global state array
+            const uniqueUnits = [...new Set(rawVocabData.map(item => item.unit))].sort();
+            
+            unitSelect.innerHTML = '<option value="ALL_UNITS">All Units / Whole Book</option>';
+            uniqueUnits.forEach(unit => {
+                const opt = document.createElement('option');
+                opt.value = unit;
+                opt.textContent = unit;
+                unitSelect.appendChild(opt);
+            });
+
+            unitSelect.addEventListener('change', populateLessonsDropdown);
+            lessonSelect.addEventListener('change', () => {
+                stopAutoplay();
+                syncActiveDataPool();
+                if (currentMode === 'memorize') displayCurrentCard();
+            });
+
+            populateLessonsDropdown();
+        }
+
+        function populateLessonsDropdown() {
+            const selectedUnit = unitSelect.value;
+            lessonSelect.innerHTML = '';
+
+            if (selectedUnit === 'ALL_UNITS') {
+                const opt = document.createElement('option');
+                opt.value = 'ALL_LESSONS';
+                opt.textContent = 'All Lessons Combined';
+                lessonSelect.appendChild(opt);
+            } else {
+                // Fetch valid lessons linked exclusively to selected Unit scope
+                const dynamicLessons = [...new Set(rawVocabData
+                    .filter(item => item.unit === selectedUnit)
+                    .map(item => item.lesson))].sort();
+
+                const optAll = document.createElement('option');
+                optAll.value = 'ENTIRE_UNIT';
+                optAll.textContent = `Whole ${selectedUnit} (All Lessons)`;
+                lessonSelect.appendChild(optAll);
+
+                dynamicLessons.forEach(less => {
+                    const opt = document.createElement('option');
+                    opt.value = less;
+                    opt.textContent = less;
+                    lessonSelect.appendChild(opt);
+                });
+            }
+            syncActiveDataPool();
+        }
+
+        function syncActiveDataPool() {
+            const uValue = unitSelect.value;
+            const lValue = lessonSelect.value;
+
+            if (uValue === 'ALL_UNITS') {
+                flashcards = [...rawVocabData];
+            } else {
+                if (lValue === 'ENTIRE_UNIT') {
+                    flashcards = rawVocabData.filter(item => item.unit === uValue);
+                } else {
+                    flashcards = rawVocabData.filter(item => item.unit === uValue && item.lesson === lValue);
+                }
+            }
+
+            quizLengthInput.max = flashcards.length;
+            quizLengthInput.value = Math.min(10, flashcards.length);
+            currentCardIndex = 0;
+            updateWordList();
+            if (currentMode === 'memorize') displayCurrentCard();
+        }
+
+        // --- Core Flashcard Logic & Navigation Routines ---
+        memorizeView.addEventListener('click', async () => {
+            memorizeView.classList.toggle('flipped');
+            if (isAutoplaying) return; 
+            if (memorizeView.classList.contains('flipped')) {
+                const activeCard = flashcards[currentCardIndex];
+                if (pronounceArabicCheck.checked && activeCard.arabic) await vocalizeSequence(activeCard.arabic, 'ar-SA');
+                if (pronounceDescriptionCheck.checked && activeCard.description) await vocalizeSequence(activeCard.description, 'en-US');
+            } else {
+                window.speechSynthesis.cancel();
+            }
+        });
+
+        function displayCurrentCard() {
+            if (flashcards.length === 0) {
+                wordFront.textContent = 'Empty Scope';
+                cardIcon.textContent = '⚠️';
+                description.textContent = 'No words found inside this configuration criteria.';
+                arabicMeaning.textContent = 'لا توجد كلمات';
+                progress.textContent = `0 / 0`;
+                return;
+            }
+            const activeCard = flashcards[currentCardIndex];
+            wordFront.textContent = activeCard.word;
+            cardIcon.textContent = activeCard.icon || '📚';
+            description.textContent = activeCard.description;
+            arabicMeaning.textContent = activeCard.arabic;
+            progress.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+            
+            document.querySelectorAll('.word-item').forEach((item, idx) => {
+                item.classList.toggle('active', idx === currentCardIndex);
+            });
+            if (memorizeView.classList.contains('flipped')) memorizeView.classList.remove('flipped');
+        }
+
+        function showPreviousCard() { stopAutoplay(); if(flashcards.length===0)return; currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length; displayCurrentCard(); }
+        function showNextCard() { if(flashcards.length===0)return; currentCardIndex = (currentCardIndex + 1) % flashcards.length; displayCurrentCard(); }
+        
+        function shuffleCards() {
+            stopAutoplay();
+            if (flashcards.length < 2) return;
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            currentCardIndex = 0;
+            updateWordList();
+            displayCurrentCard();
+            showNotification("🔀 Active set shuffled!");
+        }
+
+        function updateWordList() {
+            wordList.innerHTML = '';
+            flashcards.forEach((card, idx) => {
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.textContent = `${card.word} (${card.lesson})`;
+                div.addEventListener('click', () => {
+                    stopAutoplay();
+                    currentCardIndex = idx;
+                    displayCurrentCard();
+                });
+                wordList.appendChild(div);
+            });
+        }
+
+        // --- Universal Runtime Utilities Section ---
+        function vocalizeSequence(text, langCode) {
+            return new Promise(resolve => {
+                if (!('speechSynthesis' in window)) { resolve(); return; }
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode;
+                utterance.rate = speechRate;
+                utterance.onend = resolve;
+                utterance.onerror = resolve;
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+
+        function showNotification(msg, isError = false) {
+            notification.textContent = msg;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 2500);
+        }
+
+        // --- Mode Context Switching Control Core ---
+        function switchMode(targetMode) {
+            stopAutoplay();
+            currentMode = targetMode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`${targetMode}ModeBtn`).classList.add('active');
+
+            const interfaceViews = [searchSection, levelSelectView, cardContainer, memorizeNav, wordList, quizView, memorizeView, controlsSection, gamesSection];
+            interfaceViews.forEach(v => v.classList.add('hidden'));
+
+            if (targetMode === 'memorize') {
+                [controlsSection, cardContainer, memorizeView, memorizeNav, wordList].forEach(v => v.classList.remove('hidden'));
+                displayCurrentCard();
+            } else if (targetMode === 'search') {
+                [searchSection, cardContainer, memorizeView].forEach(v => v.classList.remove('hidden'));
+                performSearch();
+            } else if (targetMode === 'quiz') {
+                levelSelectView.classList.remove('hidden');
+            } else if (targetMode === 'games') {
+                gamesSection.classList.remove('hidden');
+                gameMenuView.classList.remove('hidden');
+                [matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(g => g.classList.add('hidden'));
+            }
+        }
+
+        // Switch listeners
+        memorizeModeBtn.addEventListener('click', () => switchMode('memorize'));
+        searchModeBtn.addEventListener('click', () => switchMode('search'));
+        quizModeBtn.addEventListener('click', () => switchMode('quiz'));
+        gamesModeBtn.addEventListener('click', () => switchMode('games'));
+
+        prevBtn.addEventListener('click', showPreviousCard);
+        nextBtn.addEventListener('click', showNextCard);
+        shuffleBtn.addEventListener('click', shuffleCards);
+        autoplayBtn.addEventListener('click', toggleAutoplay);
+        pronounceBtn.addEventListener('click', (e) => { e.stopPropagation(); vocalizeSequence(flashcards[currentCardIndex].word, 'en-US'); });
+        
+        speedControl.addEventListener('input', (e) => {
+            speechRate = parseFloat(e.target.value);
+            speedValue.textContent = `${speechRate.toFixed(1)}x`;
+        });
+
+        // --- Contextual Search Engine Logic Systems ---
+        searchLangEnBtn.addEventListener('click', () => { searchLanguage = 'en'; searchLangEnBtn.style.opacity = '1'; searchLangArBtn.style.opacity = '0.6'; performSearch(); });
+        searchLangArBtn.addEventListener('click', () => { searchLanguage = 'ar'; searchLangArBtn.style.opacity = '1'; searchLangEnBtn.style.opacity = '0.6'; performSearch(); });
+        searchInput.addEventListener('input', performSearch);
+
+        function performSearch() {
+            const term = searchInput.value.trim().toLowerCase();
+            if (!term) { searchResults.innerHTML = ''; return; }
+            const wildcardRegex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*'), 'i');
+            
+            const matches = flashcards.filter(c => {
+                const targetText = (searchLanguage === 'en' ? c.word : c.arabic).toLowerCase();
+                return wildcardRegex.test(targetText);
+            });
+
+            searchResults.innerHTML = '';
+            if (matches.length === 0) { searchResults.innerHTML = '<div class="word-item">No records correspond with criteria</div>'; return; }
+
+            matches.forEach(m => {
+                const el = document.createElement('div');
+                el.className = 'word-item';
+                el.textContent = `${m.word} ➔ ${m.arabic} [${m.unit}]`;
+                el.addEventListener('click', () => {
+                    const matchedIndex = flashcards.findIndex(f => f.word === m.word);
+                    if(matchedIndex !== -1) { currentCardIndex = matchedIndex; displayCurrentCard(); }
+                });
+                searchResults.appendChild(el);
+            });
+        }
+
+        // --- Autoplay Sequential Automation Loop ---
+        function toggleAutoplay() { isAutoplaying ? stopAutoplay() : startAutoplay(); }
+        function startAutoplay() {
+            if(flashcards.length === 0) return;
+            isAutoplaying = true;
+            autoplayBtn.textContent = '⏹️ Stop';
+            autoplayBtn.style.background = 'red';
+            executeAutoplayLoop();
+        }
+        function stopAutoplay() {
+            if(!isAutoplaying) return;
+            isAutoplaying = false;
+            clearTimeout(autoplayTimeout);
+            window.speechSynthesis.cancel();
+            autoplayBtn.textContent = '▶️ Autoplay';
+            autoplayBtn.style.background = '';
+        }
+        async function executeAutoplayLoop() {
+            if (!isAutoplaying) return;
+            const current = flashcards[currentCardIndex];
+            if (pronounceWordCheck.checked) await vocalizeSequence(current.word, 'en-US');
+            if (!isAutoplaying) return;
+            memorizeView.classList.add('flipped');
+            await new Promise(r => setTimeout(r, 1200));
+            if (!isAutoplaying) return;
+            if (pronounceArabicCheck.checked) await vocalizeSequence(current.arabic, 'ar-SA');
+            if (!isAutoplaying) return;
+            if (pronounceDescriptionCheck.checked) await vocalizeSequence(current.description, 'en-US');
+            await new Promise(r => setTimeout(r, 1500));
+            if (!isAutoplaying) return;
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            displayCurrentCard();
+            autoplayTimeout = setTimeout(executeAutoplayLoop, 600);
+        }
+
+        // --- Assessment Engine Level 1 & Level 2 Quiz Architecture ---
+        level1Btn.addEventListener('click', () => { currentQuizLevel = 1; launchQuizCycle(); });
+        level2Btn.addEventListener('click', () => { currentQuizLevel = 2; launchQuizCycle(); });
+        restartQuizBtn.addEventListener('click', launchQuizCycle);
+
+        function launchQuizCycle() {
+            if (flashcards.length < 4) { showNotification("Requires a pool of at least 4 entries to parse question sets.", true); return; }
+            levelSelectView.classList.add('hidden');
+            cardContainer.classList.remove('hidden');
+            quizView.classList.remove('hidden');
+            score = 0; currentQuizIndex = 0;
+            
+            let requestedTotal = parseInt(quizLengthInput.value) || 10;
+            quizQuestions = [...flashcards].sort(() => 0.5 - Math.random()).slice(0, Math.min(requestedTotal, flashcards.length));
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                quizQuestionLevel1.classList.add('hidden');
+                quizQuestionText.classList.remove('hidden');
+                quizQuestionText.innerHTML = `🏁 Quiz Completed!<br>Final Tally: ${score} / ${quizQuestions.length}`;
+                quizOptions.innerHTML = '';
+                quizProgress.textContent = 'Finished';
+                return;
+            }
+            quizOptions.innerHTML = '';
+            const target = quizQuestions[currentQuizIndex];
+            quizProgress.textContent = `Progress: ${currentQuizIndex + 1} / ${quizQuestions.length}`;
+            quizScore.textContent = `🏆 Score: ${score}/${quizQuestions.length}`;
+
+            let criteriaTarget = '', rightAnswer = '';
+            const setDistractors = new Set();
+
+            if (currentQuizLevel === 1) {
+                quizQuestionText.classList.add('hidden');
+                quizQuestionLevel1.classList.remove('hidden');
+                quizQuestionIcon.textContent = target.icon;
+                quizQuestionWord.textContent = target.word;
+                rightAnswer = target.arabic;
+                setDistractors.add(rightAnswer);
+                while(setDistractors.size < Math.min(4, flashcards.length)) { setDistractors.add(flashcards[Math.floor(Math.random()*flashcards.length)].arabic); }
+            } else {
+                quizQuestionLevel1.classList.add('hidden');
+                quizQuestionText.classList.remove('hidden');
+                quizQuestionText.textContent = target.description;
+                rightAnswer = target.word;
+                setDistractors.add(rightAnswer);
+                while(setDistractors.size < Math.min(4, flashcards.length)) { setDistractors.add(flashcards[Math.floor(Math.random()*flashcards.length)].word); }
+            }
+
+            const choicesArr = Array.from(setDistractors).sort(() => 0.5 - Math.random());
+            choicesArr.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = c;
+                btn.addEventListener('click', () => verifySelectedChoice(btn, c, rightAnswer));
+                quizOptions.appendChild(btn);
+            });
+        }
+
+        function verifySelectedChoice(element, chosen, correct) {
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.disabled = true;
+                if(b.textContent === correct) b.classList.add('correct');
+            });
+            if (chosen === correct) { score++; showNotification("Splendid! Correct Answer."); } 
+            else { element.classList.add('incorrect'); showNotification("Incorrect Selection.", true); }
+            currentQuizIndex++;
+            setTimeout(renderQuizQuestion, 2000);
+        }
+
+        // --- Interactive Gaming Environments Core Suite ---
+        startMatchingGameBtn.addEventListener('click', initMatchingGame);
+        restartMatchingGameBtn.addEventListener('click', initMatchingGame);
+        startHangmanGameBtn.addEventListener('click', initHangmanGame);
+        restartHangmanGameBtn.addEventListener('click', initHangmanGame);
+        startWordScrambleGameBtn.addEventListener('click', initScrambleGame);
+        restartWordScrambleGameBtn.addEventListener('click', initScrambleGame);
+        startSpellingBeeGameBtn.addEventListener('click', initSpellingGame);
+        restartSpellingBeeGameBtn.addEventListener('click', initSpellingGame);
+
+        function resetAllGamePanels() { [gameMenuView, matchingGameContainer, hangmanGameContainer, wordScrambleGameContainer, spellingBeeGameContainer].forEach(c => c.classList.add('hidden')); }
+
+        // Module A: Matching Matrix Game
+        function initMatchingGame() {
+            if (flashcards.length < 5) { showNotification("Requires 5 entries minimum to calculate matches.", true); return; }
+            resetAllGamePanels(); matchingGameContainer.classList.remove('hidden');
+            matchScore = 0; selectedWordEl = null; selectedMeaningEl = null;
+            matchScoreEl.textContent = `Score: 0`;
+
+            const chosenSample = [...flashcards].sort(() => 0.5 - Math.random()).slice(0, Math.min(6, flashcards.length));
+            pairsToMatch = chosenSample.length;
+
+            const structuredWords = chosenSample.map(i => ({ val: i.word, id: i.word }));
+            const structuredMeans = chosenSample.map(i => ({ val: i.arabic, id: i.word }));
+
+            structuredWords.sort(() => 0.5 - Math.random());
+            structuredMeans.sort(() => 0.5 - Math.random());
+
+            matchWordsColumn.innerHTML = ''; matchMeaningsColumn.innerHTML = '';
+            
+            structuredWords.forEach(w => {
+                const d = document.createElement('div'); d.className = 'match-item'; d.textContent = w.val; d.dataset.id = w.id;
+                d.addEventListener('click', () => {
+                    if(selectedWordEl) selectedWordEl.classList.remove('selected');
+                    selectedWordEl = d; d.classList.add('selected'); evaluateMatchCombination();
+                });
+                matchWordsColumn.appendChild(d);
+            });
+
+            structuredMeans.forEach(m => {
+                const d = document.createElement('div'); d.className = 'match-item'; d.textContent = m.val; d.dataset.id = m.id; d.style.direction = 'rtl';
+                d.addEventListener('click', () => {
+                    if(selectedMeaningEl) selectedMeaningEl.classList.remove('selected');
+                    selectedMeaningEl = d; d.classList.add('selected'); evaluateMatchCombination();
+                });
+                matchMeaningsColumn.appendChild(d);
+            });
+        }
+
+        function evaluateMatchCombination() {
+            if (!selectedWordEl || !selectedMeaningEl) return;
+            if (selectedWordEl.dataset.id === selectedMeaningEl.dataset.id) {
+                selectedWordEl.classList.add('correct'); selectedMeaningEl.classList.add('correct');
+                selectedWordEl = null; selectedMeaningEl = null; matchScore++;
+                matchScoreEl.textContent = `Score: ${matchScore}`;
+                if(matchScore === pairsToMatch) showNotification("🏆 Victory! All matching combinations established.");
+            } else {
+                const w = selectedWordEl, m = selectedMeaningEl;
+                w.classList.add('incorrect'); m.classList.add('incorrect');
+                selectedWordEl = null; selectedMeaningEl = null;
+                setTimeout(() => { w.classList.remove('incorrect', 'selected'); m.classList.remove('incorrect', 'selected'); }, 800);
+            }
+        }
+
+        // Module B: Classic Hangman Challenge Vector Engine
+        function initHangmanGame() {
+            resetAllGamePanels(); hangmanGameContainer.classList.remove('hidden');
+            hangmanWrongGuesses = 0; hangmanGuessedLetters = [];
+            
+            const sanitisedArray = flashcards.filter(c => !c.word.includes(' '));
+            if(sanitisedArray.length === 0) { showNotification("No singular term options matching requirements.", true); initMatchingGame(); return; }
+            
+            hangmanCardToGuess = sanitisedArray[Math.floor(Math.random() * sanitisedArray.length)];
+            hangmanWordToGuess = hangmanCardToGuess.word.toUpperCase();
+
+            hangmanLivesEl.textContent = `Lives Remaining: ${HANGMAN_MAX_WRONG}`;
+            document.querySelectorAll('#hangmanDrawing .hg-part').forEach(p => p.classList.remove('draw'));
+            renderHangmanWordBlocks(); buildHangmanVirtualKeyboard();
+        }
+
+        function renderHangmanWordBlocks() {
+            hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(char => `
+                <div class="letter-box">${hangmanGuessedLetters.includes(char) ? char : ''}</div>
+            `).join('');
+        }
+
+        function buildHangmanVirtualKeyboard() {
+            hangmanKeyboard.innerHTML = '';
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l => {
+                const b = document.createElement('button'); b.className = 'key'; b.textContent = l;
+                b.addEventListener('click', () => {
+                    b.disabled = true;
+                    if (hangmanWordToGuess.includes(l)) {
+                        b.classList.add('correct'); hangmanGuessedLetters.push(l); renderHangmanWordBlocks();
+                        if(hangmanWordToGuess.split('').every(c => hangmanGuessedLetters.includes(c))) showNotification("🎉 Victory! Word Identified.");
+                    } else {
+                        b.classList.add('incorrect'); hangmanWrongGuesses++;
+                        hangmanLivesEl.textContent = `Lives Remaining: ${HANGMAN_MAX_WRONG - hangmanWrongGuesses}`;
+                        const parts = document.querySelectorAll('#hangmanDrawing .hg-part');
+                        if (parts[hangmanWrongGuesses - 1]) parts[hangmanWrongGuesses - 1].classList.add('draw');
+                        if (hangmanWrongGuesses >= HANGMAN_MAX_WRONG) {
+                            showNotification(`😭 Game Over. Answer: ${hangmanWordToGuess}`, true);
+                            hangmanWordEl.innerHTML = hangmanWordToGuess.split('').map(c => `<div class="letter-box">${c}</div>`).join('');
+                        }
+                    }
+                });
+                hangmanKeyboard.appendChild(b);
+            });
+        }
+
+        // Module C: Word Scramble Reordering Matrix
+        function initScrambleGame() {
+            resetAllGamePanels(); wordScrambleGameContainer.classList.remove('hidden');
+            scrambleGuessInput.value = ''; scrambleGuessInput.disabled = false;
+            if(flashcards.length === 0) return;
+            scrambleWordToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            
+            let mixed = scrambleWordToGuess.word.split('').sort(() => 0.5 - Math.random()).join('');
+            if(mixed === scrambleWordToGuess.word && mixed.length > 1) mixed = mixed.split('').reverse().join('');
+            
+            scrambledWordEl.textContent = mixed;
+        }
+
+        submitScrambleBtn.addEventListener('click', () => {
+            const userIn = scrambleGuessInput.value.trim().toLowerCase();
+            if(userIn === scrambleWordToGuess.word.toLowerCase()) {
+                scrambleScore++; scrambleScoreEl.textContent = `Score: ${scrambleScore}`;
+                showNotification(`Excellent! Answer: ${scrambleWordToGuess.word}`); initScrambleGame();
+            } else { showNotification(`Incorrect guess. Correct value: ${scrambleWordToGuess.word}`, true); initScrambleGame(); }
+        });
+        skipScrambleBtn.addEventListener('click', initScrambleGame);
+
+        // Module D: Audio Spelling Bee
+        function initSpellingGame() {
+            resetAllGamePanels(); spellingBeeGameContainer.classList.remove('hidden');
+            spellingGuessInput.value = ''; spellingBeeLives = SPELLING_BEE_MAX_LIVES;
+            spellingBeeLivesEl.textContent = `Lives: ${spellingBeeLives} ❤️`;
+            spellingBeeScoreEl.textContent = `Score: ${spellingBeeScore}`;
+            fetchNextSpellingRound();
+        }
+
+        function fetchNextSpellingRound() {
+            if(flashcards.length === 0) return;
+            spellingGuessInput.value = ''; spellingGuessInput.disabled = false;
+            spellingBeeCardToGuess = flashcards[Math.floor(Math.random() * flashcards.length)];
+            spellingBeeHint.textContent = `Hint (Arabic): ${spellingBeeCardToGuess.arabic}`;
+            vocalizeSequence(spellingBeeCardToGuess.word, 'en-US');
+        }
+
+        hearWordAgainBtn.addEventListener('click', () => { if(spellingBeeCardToGuess) vocalizeSequence(spellingBeeCardToGuess.word, 'en-US'); });
+        
+        submitSpellingBtn.addEventListener('click', () => {
+            const userIn = spellingGuessInput.value.trim().toLowerCase();
+            if (userIn === spellingBeeCardToGuess.word.toLowerCase()) {
+                spellingBeeScore++; spellingBeeScoreEl.textContent = `Score: ${spellingBeeScore}`;
+                showNotification("Correct Spelling!"); fetchNextSpellingRound();
+            } else {
+                spellingBeeLives--; spellingBeeLivesEl.textContent = `Lives: ${spellingBeeLives} ❤️`;
+                showNotification(`Incorrect spelling. Correct was: ${spellingBeeCardToGuess.word}`, true);
+                if (spellingBeeLives <= 0) { showNotification("Game Over! Spelling Bee completed.", true); spellingGuessInput.disabled = true; } 
+                else { fetchNextSpellingRound(); }
+            }
+        });
+        skipSpellingBtn.addEventListener('click', fetchNextSpellingRound);
+
+        // --- Interaction Audio Feedback (Peep Sound) ---
+        let audioCtx = null;
+
+        function playPeep() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                // Configures a short, pleasant "peep" sound
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Pitch
+                
+                // Configures volume envelope for a short "click"
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } catch (err) {
+                console.log("Audio feedback temporarily blocked or unavailable.", err);
+            }
+        }
+
+        // Attach to document with capture phase to catch everything instantly on touch/click (ideal for Android)
+        document.addEventListener('pointerdown', function(e) {
+            // Checks if the touched element is an actionable item in the UI
+            const isInteractive = e.target.closest('button, select, input, label, .word-item, .card, .match-item, .key, .option-btn, .mode-btn, .pronounce-btn, .letter-box, #hearWordAgainBtn');
+            if (isInteractive) {
+                playPeep();
+            }
+        }, true);
+        
+    </script>
+</body>
+</html>
